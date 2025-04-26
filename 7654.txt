@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iqra Virtual School - Fee Invoice</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles to override or complement Tailwind */
+        body {
+            font-family: 'Arial', sans-serif; /* Prefer Arial, fallback to sans-serif */
+            padding: 20px;
+            background-color: #f4f7f6; /* Lighter background */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #333; /* Default text color */
+        }
+
+        .urdu {
+            font-family: 'Noto Nastaliq Urdu', serif;
+            direction: rtl;
+            text-align: right; /* Adjust text alignment for RTL */
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px; /* Slightly smaller max width */
+            margin: 0 auto;
+        }
+
+        /* Unique Header Styling */
+        .app-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #0056b3; /* Stronger border */
+            width: 100%; /* Ensure header takes full width */
+        }
+
+        .app-header h1 {
+            margin: 0; /* Remove default margin */
+            color: #0056b3;
+            font-size: 2.5rem; /* Larger heading */
+        }
+
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #0056b3; /* School primary color */
+        }
+
+        .form-section, .record-section, .chatbot-section {
+            background-color: #fff;
+            padding: 30px; /* Increased padding */
+            border-radius: 10px; /* More rounded corners */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Softer shadow */
+            margin-bottom: 30px;
+            width: 100%; /* Ensure sections take full width of container */
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px; /* Increased gap */
+            margin-bottom: 15px; /* Increased margin */
+            flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+        }
+
+        .form-row > div {
+            flex: 1; /* Allow flex items to grow */
+            min-width: 200px; /* Increased minimum width for flex items */
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px; /* Adjusted margin */
+            font-weight: bold;
+            color: #555; /* Slightly lighter label color */
+            font-size: 0.9rem; /* Slightly smaller font size for labels */
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select {
+            padding: 12px; /* Increased padding */
+            border-radius: 6px; /* More rounded corners */
+            border: 1px solid #ddd; /* Lighter border */
+            width: 100%; /* Full width within flex item */
+            box-sizing: border-box; /* Include padding and border in element's total width and height */
+            font-size: 1rem; /* Standard font size */
+            transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        select:focus {
+            border-color: #007bff; /* Highlight on focus */
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.2);
+            outline: none; /* Remove default outline */
+        }
+
+        button {
+            background-color: #007bff; /* Primary button color */
+            color: white;
+            border: none;
+            padding: 12px 25px; /* Increased padding */
+            margin: 10px 5px;
+            cursor: pointer;
+            border-radius: 6px; /* More rounded corners */
+            transition: background-color 0.3s ease, transform 0.1s ease; /* Smooth transition and slight press effect */
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #0056b3; /* Darker shade on hover */
+        }
+
+        button:active {
+            transform: scale(0.98); /* Slightly shrink on click */
+        }
+
+        .button-group {
+            margin-top: 20px;
+            text-align: center; /* Center buttons */
+        }
+
+        .button-group button {
+            margin: 0 8px; /* Space between buttons */
+        }
+
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border: 1px solid #ddd; /* Add border to the table */
+            border-radius: 8px; /* Rounded corners for the table */
+            overflow: hidden; /* Hide overflow for rounded corners */
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 15px; /* Increased padding */
+            text-align: left;
+        }
+
+        th {
+            background-color: #e9ecef; /* Light gray background for headers */
+            font-weight: bold;
+            color: #495057; /* Darker header text */
+            font-size: 0.95rem;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa; /* Alternate row color */
+        }
+
+        tr:hover {
+            background-color: #e2e6ea; /* Highlight row on hover */
+        }
+
+        .action-buttons button {
+            padding: 5px 10px;
+            margin: 0 3px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+        }
+
+        .action-buttons .edit-btn {
+            background-color: #ffc107; /* Warning color */
+            color: #212529;
+        }
+
+        .action-buttons .edit-btn:hover {
+            background-color: #e0a800;
+        }
+
+         .action-buttons .delete-btn {
+            background-color: #dc3545; /* Danger color */
+            color: white;
+        }
+
+        .action-buttons .delete-btn:hover {
+            background-color: #c82333;
+        }
+
+
+        #invoiceDisplay {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            width: 100%;
+            border: 1px solid #ccc; /* Border for the invoice */
+            box-sizing: border-box; /* Include padding and border */
+        }
+
+        .invoice-template {
+            font-family: Arial, sans-serif;
+            color: #333;
+            line-height: 1.5;
+             /* Set a max width for the invoice template content to fit A5 */
+            max-width: 148mm; /* A5 width */
+            margin: 0 auto; /* Center the invoice content */
+        }
+
+        .invoice-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #0056b3;
+            padding-bottom: 15px;
+        }
+
+
+        .invoice-header h2 {
+            margin: 0;
+            color: #0056b3;
+            font-size: 1.8rem; /* Slightly smaller in invoice */
+        }
+
+        .invoice-header p {
+            margin: 5px 0 0;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .invoice-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .invoice-details > div {
+            width: 48%; /* Adjust width for two columns */
+            min-width: 250px; /* Minimum width for details block */
+            margin-bottom: 15px;
+        }
+
+        .invoice-details h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #0056b3;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        .invoice-details p {
+            margin-bottom: 8px;
+        }
+
+        .invoice-items {
+            margin-bottom: 30px;
+        }
+
+        .invoice-items table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #ddd;
+        }
+
+        .invoice-items th, .invoice-items td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .invoice-items th {
+            background-color: #e9ecef;
+            font-weight: bold;
+        }
+
+        .invoice-total {
+            text-align: right;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #0056b3;
+            margin-top: 20px;
+        }
+
+        .invoice-footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #777;
+            font-size: 0.9rem;
+        }
+
+        /* Urdu specific styles for invoice template */
+        .urdu .invoice-template {
+             text-align: right;
+        }
+
+        .urdu .invoice-details {
+             direction: rtl;
+             justify-content: space-between; /* Maintain space between columns */
+        }
+
+         .urdu .invoice-details > div {
+            text-align: right;
+         }
+
+         .urdu .invoice-items th, .urdu .invoice-items td {
+            text-align: right;
+         }
+
+         .urdu .invoice-total {
+            text-align: left; /* Total on the left in RTL */
+         }
+         .urdu .invoice-footer {
+            text-align: center;
+         }
+
+         /* Urdu specific styles for app header */
+         .urdu .app-header {
+             direction: rtl;
+         }
+
+
+        #chatOutput {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #e9ecef; /* Lighter background */
+            border-radius: 5px;
+            min-height: 50px;
+            white-space: pre-wrap; /* Preserve whitespace and wrap text */
+            border: 1px solid #ced4da; /* Border for chat output */
+        }
+
+        #chatOutput p {
+            margin-bottom: 8px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .form-row {
+                flex-direction: column; /* Stack form elements on small screens */
+                gap: 0; /* Remove gap when stacked */
+            }
+
+            .form-row > div {
+                min-width: 100%; /* Full width when stacked */
+                margin-bottom: 15px; /* Add space between stacked elements */
+            }
+
+            .form-row > div:last-child {
+                margin-bottom: 0; /* No bottom margin for the last element */
+            }
+
+            button {
+                width: 100%; /* Full width buttons on small screens */
+                margin: 5px 0; /* Adjust button margin */
+            }
+             th, td {
+                padding: 10px; /* Reduce padding on small screens */
+            }
+
+            .button-group button {
+                margin: 5px 0; /* Stack buttons on small screens */
+            }
+
+             .invoice-details > div {
+                width: 100%; /* Stack invoice details on small screens */
+             }
+
+             .app-header {
+                flex-direction: column; /* Stack logo and text in app header on small screens */
+                gap: 10px; /* Reduce gap */
+             }
+
+             .urdu .app-header {
+                 flex-direction: column; /* Stack logo and text in app header on small screens */
+             }
+
+             .invoice-header {
+                flex-direction: column; /* Stack logo and text in invoice header on small screens */
+                gap: 10px; /* Reduce gap */
+             }
+             .invoice-header .header-text {
+                 text-align: center; /* Center text when stacked */
+             }
+             .urdu .invoice-header {
+                 flex-direction: column; /* Stack logo and text in invoice header on small screens */
+             }
+              .urdu .invoice-header .header-text {
+                 text-align: center; /* Center text when stacked */
+             }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="app-header">
+            <h1 id="appTitle">Iqra Virtual School</h1>
+        </div>
+
+
+        <div class="button-group">
+             <button onclick="toggleLanguage()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Toggle Language (اردو/English)</button>
+        </div>
+
+
+        <div id="invoiceForm" class="form-section">
+            <h2 id="formTitle">Fee Invoice Form</h2>
+
+            <div class="form-row">
+                <div>
+                    <label id="nameLabel" for="name">Student Name</label>
+                    <input type="text" id="name" placeholder="Enter student name">
+                </div>
+                <div>
+                    <label id="fatherLabel" for="fatherName">Father's Name</label>
+                    <input type="text" id="fatherName" placeholder="Enter father's name">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div>
+                    <label id="classLabel" for="class">Class</label>
+                    <input type="text" id="class" placeholder="Enter class">
+                </div>
+                <div>
+                    <label id="rollLabel" for="rollNo">Roll No</label>
+                    <input type="text" id="rollNo" placeholder="Enter roll number">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div>
+                    <label id="dateLabel" for="date">Date</label>
+                    <input type="date" id="date">
+                </div>
+                <div>
+                    <label id="feeLabel" for="fee">Fee Amount</label>
+                    <input type="number" id="fee" placeholder="Enter fee amount">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div>
+                    <label id="totalLabel" for="total">Total</label>
+                    <input type="number" id="total" placeholder="Enter total amount">
+                </div>
+            </div>
+
+            <div class="button-group">
+                 <button onclick="generateInvoice()" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Generate Invoice</button>
+                 <button onclick="printInvoice()" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Print Current Invoice</button>
+                 <button onclick="exportCurrentInvoiceToPDF()" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Export Current Invoice to PDF</button>
+            </div>
+        </div>
+
+        <div id="invoiceDisplay" class="form-section hidden">
+            </div>
+
+        <div class="record-section">
+            <h2 id="recordTitle">Saved Fee Records</h2>
+            <input type="text" id="searchBox" onkeyup="searchRecords()" placeholder="Search by name or roll no" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4">
+            <div class="button-group">
+                <button onclick="exportAllToExcel()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Export All to Excel</button>
+            </div>
+            <table class="min-w-full bg-white mt-4">
+                <thead>
+                    <tr>
+                        <th class="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
+                        <th class="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Roll No</th>
+                        <th class="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Class</th>
+                        <th class="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
+                        <th class="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Fee</th>
+                        <th class="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Total</th>
+                         <th class="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="recordsTable">
+                    </tbody>
+            </table>
+        </div>
+
+        <div class="chatbot-section">
+            <h2>Fee Info Assistant</h2>
+            <div class="form-row">
+                 <div>
+                    <input type="text" id="chatInput" placeholder="Enter Roll No to find fee info" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                 </div>
+                 <div>
+                    <button onclick="chatSearch()" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">Ask</button>
+                 </div>
+            </div>
+            <div id="chatOutput"></div>
+        </div>
+
+    </div>
+
+    <script>
+        // Variable to track current language state
+        let isUrdu = false;
+        // Variable to store records loaded from local storage
+        let records = JSON.parse(localStorage.getItem('feeRecords')) || [];
+
+        // Function to toggle between English and Urdu languages
+        function toggleLanguage() {
+            isUrdu = !isUrdu; // Toggle the language state
+            document.body.classList.toggle('urdu'); // Add/remove 'urdu' class to body
+
+            // Update text content based on language state
+            document.getElementById('appTitle').textContent = isUrdu ? 'اقراء ورچوئل سکول' : 'Iqra Virtual School';
+            document.getElementById('formTitle').textContent = isUrdu ? 'فیس انوائس فارم' : 'Fee Invoice Form';
+            document.getElementById('nameLabel').textContent = isUrdu ? 'طالب علم کا نام' : 'Student Name';
+            document.getElementById('fatherLabel').textContent = isUrdu ? 'والد کا نام' : "Father's Name";
+            document.getElementById('classLabel').textContent = isUrdu ? 'کلاس' : 'Class';
+            document.getElementById('rollLabel').textContent = isUrdu ? 'رول نمبر' : 'Roll No';
+            document.getElementById('dateLabel').textContent = isUrdu ? 'تاریخ' : 'Date';
+            document.getElementById('feeLabel').textContent = isUrdu ? 'فیس کی رقم' : 'Fee Amount';
+            document.getElementById('totalLabel').textContent = isUrdu ? 'کل' : 'Total';
+            document.getElementById('recordTitle').textContent = isUrdu ? 'محفوظ شدہ فیس ریکارڈز' : 'Saved Fee Records';
+
+            // Update placeholder text for input fields
+            document.getElementById('name').placeholder = isUrdu ? 'طالب علم کا نام درج کریں' : 'Enter student name';
+            document.getElementById('fatherName').placeholder = isUrdu ? 'والد کا نام درج کریں' : "Enter father's name";
+            document.getElementById('class').placeholder = isUrdu ? 'کلاس درج کریں' : 'Enter class';
+            document.getElementById('rollNo').placeholder = isUrdu ? 'رول نمبر درج کریں' : 'Enter roll number';
+            document.getElementById('fee').placeholder = isUrdu ? 'فیس کی رقم درج کریں' : 'Enter fee amount';
+            document.getElementById('total').placeholder = isUrdu ? 'کل رقم درج کریں' : 'Enter total amount';
+            document.getElementById('searchBox').placeholder = isUrdu ? 'نام یا رول نمبر سے تلاش کریں' : 'Search by name or roll no';
+            document.getElementById('chatInput').placeholder = isUrdu ? 'فیس کی معلومات کے لیے رول نمبر درج کریں' : 'Enter Roll No to find fee info';
+
+            // Update button texts
+            document.querySelector('#invoiceForm .button-group button:nth-of-type(1)').textContent = isUrdu ? 'انوائس بنائیں' : 'Generate Invoice';
+            document.querySelector('#invoiceForm .button-group button:nth-of-type(2)').textContent = isUrdu ? 'موجودہ انوائس پرنٹ کریں' : 'Print Current Invoice';
+            document.querySelector('#invoiceForm .button-group button:nth-of-type(3)').textContent = isUrdu ? 'موجودہ انوائس پی ڈی ایف میں ایکسپورٹ کریں' : 'Export Current Invoice to PDF';
+            document.querySelector('.record-section .button-group button:nth-of-type(1)').textContent = isUrdu ? 'تمام ریکارڈز ایکسل میں ایکسپورٹ کریں' : 'Export All to Excel';
+            document.querySelector('.chatbot-section button').textContent = isUrdu ? 'پوچھیں' : 'Ask';
+
+            // Re-display records to update action button text if visible
+            displayRecords();
+             // Re-display current invoice if visible to update text
+            const currentInvoiceStudent = JSON.parse(sessionStorage.getItem('currentInvoiceStudent'));
+            if(currentInvoiceStudent) {
+                displayInvoice(currentInvoiceStudent);
+            }
+        }
+
+        // Function to generate and store an invoice
+        function generateInvoice() {
+            // Get student details from input fields
+            const student = {
+                name: document.getElementById('name').value.trim(),
+                fatherName: document.getElementById('fatherName').value.trim(),
+                class: document.getElementById('class').value.trim(),
+                rollNo: document.getElementById('rollNo').value.trim(),
+                date: document.getElementById('date').value,
+                fee: document.getElementById('fee').value.trim(),
+                total: document.getElementById('total').value.trim()
+            };
+
+            // Validate input fields
+            if (!student.name || !student.fatherName || !student.class || !student.rollNo || !student.date || !student.fee || !student.total) {
+                alert(isUrdu ? 'براہ کرم تمام فیلڈز پُر کریں۔' : 'Please fill in all fields.');
+                return;
+            }
+
+             // Check if editing an existing record
+            const editingIndex = document.getElementById('invoiceForm').dataset.editingIndex;
+            if (editingIndex !== undefined) {
+                // Update the existing record
+                records[editingIndex] = student;
+                alert(isUrdu ? 'ریکارڈ کامیابی سے اپ ڈیٹ ہو گیا!' : 'Record updated successfully!');
+                 // Remove editing index
+                delete document.getElementById('invoiceForm').dataset.editingIndex;
+                 // Change button back to Generate
+                document.querySelector('#invoiceForm .button-group button:nth-of-type(1)').textContent = isUrdu ? 'انوائس بنائیں' : 'Generate Invoice';
+            } else {
+                // Add the new student record to the records array
+                records.push(student);
+                 alert(isUrdu ? 'انوائس کامیابی سے تیار ہو گئی!' : 'Invoice generated successfully!');
+            }
+
+
+            // Save the updated records array to local storage
+            localStorage.setItem('feeRecords', JSON.stringify(records));
+
+            // Display the generated or updated invoice
+            displayInvoice(student);
+            // Store the currently displayed invoice student in session storage for PDF export
+            sessionStorage.setItem('currentInvoiceStudent', JSON.stringify(student));
+
+            // Display all records in the table
+            displayRecords();
+
+            // Clear form fields after generating/updating the invoice
+            clearForm();
+        }
+
+        // Function to display a single invoice with a professional template
+        function displayInvoice(student) {
+            const invoiceDisplay = document.getElementById('invoiceDisplay');
+            invoiceDisplay.classList.remove('hidden'); // Make the invoice display visible
+
+            // Construct the HTML for the invoice display with a professional template
+            const invoiceHtml = `
+                <div class="invoice-template">
+                    <div class="invoice-header">
+                         <div class="header-text">
+                            <h2>Iqra Virtual School</h2>
+                            <p>${isUrdu ? 'فیس انوائس' : 'Fee Invoice'}</p>
+                            </div>
+                    </div>
+
+                    <div class="invoice-details">
+                        <div>
+                            <h4>${isUrdu ? 'طالب علم کی تفصیلات' : 'Student Details'}</h4>
+                            <p><strong>${isUrdu ? 'نام:' : 'Student Name:'}</strong> ${student.name}</p>
+                            <p><strong>${isUrdu ? 'والد کا نام:' : "Father's Name:"}</strong> ${student.fatherName}</p>
+                            <p><strong>${isUrdu ? 'کلاس:' : 'Class:'}</strong> ${student.class}</p>
+                            <p><strong>${isUrdu ? 'رول نمبر:' : 'Roll No:'}</strong> ${student.rollNo}</p>
+                        </div>
+                        <div>
+                            <h4>${isUrdu ? 'انوائس کی تفصیلات' : 'Invoice Details'}</h4>
+                            <p><strong>${isUrdu ? 'انوائس نمبر:' : 'Invoice No:'}</strong> ${student.rollNo}-${new Date().getFullYear()}${records.length}</p> <p><strong>${isUrdu ? 'تاریخ:' : 'Date:'}</strong> ${student.date}</p>
+                            </div>
+                    </div>
+
+                    <div class="invoice-items">
+                        <h4>${isUrdu ? 'فیس کی تفصیلات' : 'Fee Details'}</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>${isUrdu ? 'تفصیل' : 'Description'}</th>
+                                    <th>${isUrdu ? 'رقم' : 'Amount'}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>${isUrdu ? 'ماہانہ فیس' : 'Monthly Fee'}</td>
+                                    <td>${student.fee}</td>
+                                </tr>
+                                </tbody>
+                        </table>
+                    </div>
+
+                    <div class="invoice-total">
+                        ${isUrdu ? 'کل رقم:' : 'Total Amount:'} ${student.total}
+                    </div>
+
+                    <div class="invoice-footer">
+                        <p>${isUrdu ? 'شکریہ!' : 'Thank you!'}</p>
+                        </div>
+                </div>
+            `;
+            invoiceDisplay.innerHTML = invoiceHtml;
+        }
+
+        // Function to print the currently displayed invoice
+        function printInvoice() {
+            const printContents = document.getElementById('invoiceDisplay').innerHTML;
+             if (!printContents.trim()) {
+                alert(isUrdu ? 'پرنٹ کرنے کے لیے کوئی انوائس نہیں ہے۔ براہ کرم پہلے انوائس بنائیں۔' : 'No invoice to print. Please generate an invoice first.');
+                return;
+            }
+            // Set window dimensions for A5 size (approx 550x840 pixels)
+            const win = window.open('', '', 'height=840,width=550');
+            win.document.write('<html><head><title>Print Invoice</title>');
+            // Include necessary styles for printing
+            win.document.write('<style>');
+            // Copy relevant styles for the invoice template
+            win.document.write(`
+                body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+                .urdu { font-family: 'Noto Nastaliq Urdu', serif; direction: rtl; text-align: right; }
+                .invoice-template { font-family: Arial, sans-serif; color: #333; line-height: 1.5; max-width: 148mm; margin: 0 auto; }
+                .invoice-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #0056b3; padding-bottom: 15px; }
+                .invoice-header h2 { margin: 0; color: #0056b3; font-size: 1.8rem; }
+                .invoice-header p { margin: 5px 0 0; font-size: 0.9rem; color: #555; }
+                .invoice-details { display: flex; justify-content: space-between; margin-bottom: 30px; flex-wrap: wrap; }
+                .invoice-details > div { width: 48%; min-width: 250px; margin-bottom: 15px; }
+                .invoice-details h4 { margin-top: 0; margin-bottom: 10px; color: #0056b3; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+                .invoice-details p { margin-bottom: 8px; }
+                .invoice-items { margin-bottom: 30px; }
+                .invoice-items table { width: 100%; border-collapse: collapse; border: 1px solid #ddd; }
+                .invoice-items th, .invoice-items td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+                .invoice-items th { background-color: #e9ecef; font-weight: bold; }
+                .invoice-total { text-align: right; font-size: 1.2rem; font-weight: bold; color: #0056b3; margin-top: 20px; }
+                .invoice-footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; color: #777; font-size: 0.9rem; }
+                 /* Urdu specific styles for invoice template for printing */
+                .urdu .invoice-template { text-align: right; }
+                .urdu .invoice-details { direction: rtl; justify-content: space-between; }
+                .urdu .invoice-details > div { text-align: right; }
+                .urdu .invoice-items th, .urdu .invoice-items td { text-align: right; }
+                .urdu .invoice-total { text-align: left; } /* Total on the left in RTL */
+                .urdu .invoice-footer { text-align: center; }
+                @media print {
+                     body { background-color: none; } /* Remove background color in print */
+                     .invoice-template { box-shadow: none; border: none; } /* Remove shadow and border in print */
+                }
+            `);
+            win.document.write('</style>');
+            win.document.write('</head><body class="' + (isUrdu ? 'urdu' : '') + '">'); // Add urdu class if needed
+            win.document.write(printContents);
+            win.document.write('</body></html>');
+            win.document.close();
+            win.print();
+        }
+
+        // Function to export the currently displayed invoice to PDF using jsPDF and html2canvas
+        function exportCurrentInvoiceToPDF() {
+            const invoiceContent = document.getElementById('invoiceDisplay');
+             if (!invoiceContent.innerHTML.trim()) {
+                alert(isUrdu ? 'پی ڈی ایف میں ایکسپورٹ کرنے کے لیے کوئی انوائس نہیں ہے۔ براہ کرم پہلے انوائس بنائیں۔' : 'No invoice to export to PDF. Please generate an invoice first.');
+                return;
+            }
+            const { jsPDF } = window.jspdf;
+            // Set page size to 'a5'
+            const doc = new jsPDF('p', 'pt', 'a5'); // 'p' for portrait, 'pt' for points, 'a5' for size
+
+            // Use html2canvas to render the invoice content as an image
+            html2canvas(invoiceContent, { scale: 2 }).then(canvas => { // Increased scale for better resolution
+                const imgData = canvas.toDataURL('image/png');
+                // Adjust image width to fit A5 page with margins
+                const imgWidth = doc.internal.pageSize.getWidth() - 40; // A5 width minus 20pt margins on each side
+                const pageHeight = doc.internal.pageSize.getHeight();
+                const imgHeight = canvas.height * imgWidth / canvas.width;
+                let heightLeft = imgHeight;
+                let position = 20; // Start position with top margin
+
+                // Add image to PDF, handling multiple pages if necessary
+                doc.addImage(imgData, 'PNG', 20, position, imgWidth, imgHeight);
+                heightLeft -= (pageHeight - position); // Subtract visible part of image on first page
+
+                while (heightLeft > 0) {
+                    position = 20; // Reset position for new page with top margin
+                    doc.addPage();
+                    doc.addImage(imgData, 'PNG', 20, position - heightLeft, imgWidth, imgHeight); // Adjust y position
+                    heightLeft -= (pageHeight - position); // Subtract visible part of image on new page
+                }
+
+                doc.save('invoice.pdf');
+            });
+        }
+
+        // Function to export all records to an Excel file
+        function exportAllToExcel() {
+             if (records.length === 0) {
+                alert(isUrdu ? 'ایکسپورٹ کرنے کے لیے کوئی ریکارڈ نہیں ہے۔' : 'No records to export.');
+                return;
+            }
+            const ws = XLSX.utils.json_to_sheet(records);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "FeeRecords");
+            XLSX.writeFile(wb, "fee-records.xlsx");
+        }
+
+        // Function to display records in the table based on a filter
+        function displayFilteredRecords(filteredRecords) {
+            const recordsTable = document.getElementById('recordsTable');
+            recordsTable.innerHTML = ''; // Clear current table content
+            const searchInput = document.getElementById('searchBox').value.toLowerCase();
+
+            if (filteredRecords.length === 0 && searchInput !== '') {
+                 const noResultsRow = `<tr><td colspan="7" class="text-center py-4">${isUrdu ? 'کوئی ریکارڈ نہیں ملا۔' : 'No records found.'}</td></tr>`; // Adjusted colspan
+                 recordsTable.innerHTML = noResultsRow;
+                 return;
+            }
+            filteredRecords.forEach((record, index) => {
+                const row = `
+                    <tr>
+                        <td class="py-2 px-4 border-b border-gray-200">${record.name}</td>
+                        <td class="py-2 px-4 border-b border-gray-200">${record.rollNo}</td>
+                        <td class="py-2 px-4 border-b border-gray-200">${record.class}</td>
+                        <td class="py-2 px-4 border-b border-gray-200">${record.date}</td>
+                        <td class="py-2 px-4 border-b border-gray-200">${record.fee}</td>
+                        <td class="py-2 px-4 border-b border-gray-200">${record.total}</td>
+                        <td class="py-2 px-4 border-b border-gray-200 action-buttons">
+                            <button onclick="editRecord(${index})" class="edit-btn">
+                                ${isUrdu ? 'ترمیم کریں' : 'Edit'}
+                            </button>
+                            <button onclick="deleteRecord(${index})" class="delete-btn">
+                                ${isUrdu ? 'حذف کریں' : 'Delete'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                recordsTable.innerHTML += row;
+            });
+        }
+
+        // Function to search records based on name or roll number
+        function searchRecords() {
+            const searchInput = document.getElementById('searchBox').value.toLowerCase();
+            const filteredRecords = records.filter(record =>
+                record.name.toLowerCase().includes(searchInput) ||
+                record.rollNo.toLowerCase().includes(searchInput) // Also search roll number case-insensitively
+            );
+            displayFilteredRecords(filteredRecords);
+        }
+
+        // Function to display all records in the table
+        function displayRecords() {
+            displayFilteredRecords(records); // Use the displayFilteredRecords function to show all records initially
+        }
+
+        // Function to edit a record
+        function editRecord(index) {
+            const recordToEdit = records[index];
+
+            // Populate the form with the record data
+            document.getElementById('name').value = recordToEdit.name;
+            document.getElementById('fatherName').value = recordToEdit.fatherName;
+            document.getElementById('class').value = recordToEdit.class;
+            document.getElementById('rollNo').value = recordToEdit.rollNo;
+            document.getElementById('date').value = recordToEdit.date;
+            document.getElementById('fee').value = recordToEdit.fee;
+            document.getElementById('total').value = recordToEdit.total;
+
+            // Store the index of the record being edited in a data attribute
+            document.getElementById('invoiceForm').dataset.editingIndex = index;
+
+            // Change the "Generate Invoice" button text to "Update Invoice"
+            document.querySelector('#invoiceForm .button-group button:nth-of-type(1)').textContent = isUrdu ? 'انوائس اپ ڈیٹ کریں' : 'Update Invoice';
+
+            // Scroll to the top of the form
+            document.getElementById('invoiceForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Function to delete a record
+        function deleteRecord(index) {
+            const recordToDelete = records[index];
+            const confirmationMessage = isUrdu
+                ? `کیا آپ واقعی ${recordToDelete.name} (${recordToDelete.rollNo}) کا ریکارڈ حذف کرنا چاہتے ہیں؟`
+                : `Are you sure you want to delete the record for ${recordToDelete.name} (${recordToDelete.rollNo})?`;
+
+            if (confirm(confirmationMessage)) {
+                // Remove the record from the array
+                records.splice(index, 1);
+                // Save the updated records array to local storage
+                localStorage.setItem('feeRecords', JSON.stringify(records));
+                // Re-display the records table
+                displayRecords();
+                // Clear the invoice display if the deleted record was the one displayed
+                const currentInvoiceStudent = JSON.parse(sessionStorage.getItem('currentInvoiceStudent'));
+                if(currentInvoiceStudent && currentInvoiceStudent.rollNo === recordToDelete.rollNo) {
+                    document.getElementById('invoiceDisplay').innerHTML = '';
+                    document.getElementById('invoiceDisplay').classList.add('hidden');
+                    sessionStorage.removeItem('currentInvoiceStudent');
+                }
+                 alert(isUrdu ? 'ریکارڈ کامیابی سے حذف ہو گیا!' : 'Record deleted successfully!');
+            }
+        }
+
+        // Function for the chat assistant to search by roll number
+        function chatSearch() {
+            const rollNoInput = document.getElementById('chatInput').value.trim();
+            const chatOutput = document.getElementById('chatOutput');
+            chatOutput.innerHTML = ''; // Clear previous output
+
+            if (!rollNoInput) {
+                chatOutput.textContent = isUrdu ? 'براہ کرم رول نمبر درج کریں۔' : 'Please enter a Roll No.';
+                return;
+            }
+
+            // Find the record matching the roll number
+            const foundRecord = records.find(record => record.rollNo === rollNoInput);
+
+            if (foundRecord) {
+                // Display fee information in a structured format
+                chatOutput.innerHTML = `
+                    <p><strong>${isUrdu ? 'نام:' : 'Student Name:'}</strong> ${foundRecord.name}</p>
+                    <p><strong>${isUrdu ? 'رول نمبر:' : 'Roll No:'}</strong> ${foundRecord.rollNo}</p>
+                    <p><strong>${isUrdu ? 'کلاس:' : 'Class:'}</strong> ${foundRecord.class}</p>
+                    <p><strong>${isUrdu ? 'تاریخ:' : 'Date:'}</strong> ${foundRecord.date}</p>
+                    <p><strong>${isUrdu ? 'فیس کی رقم:' : 'Fee Amount:'}</strong> ${foundRecord.fee}</p>
+                    <p><strong>${isUrdu ? 'کل:' : 'Total:'}</strong> ${foundRecord.total}</p>
+                `;
+            } else {
+                // Display message if record is not found
+                chatOutput.textContent = isUrdu ? `رول نمبر ${rollNoInput} کے ساتھ کوئی ریکارڈ نہیں ملا۔` : `No record found with Roll No ${rollNoInput}.`;
+            }
+             document.getElementById('chatInput').value = ''; // Clear chat input after search
+        }
+
+        // Function to clear the input form
+        function clearForm() {
+            document.getElementById('name').value = '';
+            document.getElementById('fatherName').value = '';
+            document.getElementById('class').value = '';
+            document.getElementById('rollNo').value = '';
+            document.getElementById('date').value = '';
+            document.getElementById('fee').value = '';
+            document.getElementById('total').value = '';
+             // Reset the editing index and button text if form is cleared while editing
+            if (document.getElementById('invoiceForm').dataset.editingIndex !== undefined) {
+                 delete document.getElementById('invoiceForm').dataset.editingIndex;
+                 document.querySelector('#invoiceForm .button-group button:nth-of-type(1)').textContent = isUrdu ? 'انوائس بنائیں' : 'Generate Invoice';
+            }
+        }
+
+        // Display records when the page loads
+        window.onload = () => {
+            displayRecords();
+             // Attempt to load and display the last viewed invoice from session storage
+            const currentInvoiceStudent = JSON.parse(sessionStorage.getItem('currentInvoiceStudent'));
+            if(currentInvoiceStudent) {
+                displayInvoice(currentInvoiceStudent);
+            }
+        };
+    </script>
+
+</body>
+
+</html>
